@@ -82,13 +82,13 @@ async function main() {
   // The motion sensor places the timers' crossings inside a GPS second. It belongs to the real GPS
   // only: the simulated drive has no matching phone motion.
   if (!simulated) pages.performance.timer.shape = motion;
-  if (store.settings.motion) {
-    // the phone only asks for motion permission after a tap, so start at the first tap
-    const start = () => {
-      document.removeEventListener("click", start);
-      if (store.settings.motion) motion.enable();
-    };
-    document.addEventListener("click", start);
+  // The phone asks for motion permission after every launch of the app, so ask only when it matters:
+  // the first time the Performance page is opened (a tap, which the phone requires). Once per launch.
+  let motionAsked = false;
+  function startMotionIfWanted() {
+    if (motionAsked || !store.settings.motion) return;
+    motionAsked = true;
+    motion.enable();
   }
 
   let activePage = "live";
@@ -129,7 +129,9 @@ async function main() {
 
   document.getElementById("nav").addEventListener("click", (event) => {
     const button = event.target.closest("button");
-    if (button) showPage(button.dataset.page);
+    if (!button) return;
+    if (button.dataset.page === "performance") startMotionIfWanted();
+    showPage(button.dataset.page);
   });
 
   // Back up the running trip regularly, and whenever the page is hidden: the phone can

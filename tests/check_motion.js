@@ -181,7 +181,7 @@ checkAsync("asks for permission, listens when allowed, reports data arriving", a
   const sensor = new MotionSensor({ target: fakeTarget, clock: () => now });
   assert.strictEqual(sensor.supported, true);
   assert.ok(sensor.message(false).startsWith("Off"));
-  assert.ok(sensor.message(true).includes("Tap anywhere"));
+  assert.ok(sensor.message(true).includes("open Performance"));
   assert.strictEqual(await sensor.enable(), true);
   assert.strictEqual(asked, 1);
   assert.ok(fakeTarget.handler, "no listener was added");

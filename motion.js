@@ -85,7 +85,7 @@ class MotionSensor {
     if (!this.supported) return "Not available in this browser.";
     if (this._denied) return "Denied. To be asked again, close the app completely and open it again.";
     if (!wanted) return "Off. Turn it on for sharper acceleration timing.";
-    if (!this._listening) return "On. Tap anywhere to start it (the phone asks permission after a tap).";
+    if (!this._listening) return "On. It starts when you open Performance; the phone asks permission then.";
     if (!this.delivering) return "Allowed, but no motion data is arriving.";
     return `On: ${Math.round(this.rateHz)} readings a second, forward ${this.forward.toFixed(1)} m/s². Used for the acceleration timers.`;
   }
