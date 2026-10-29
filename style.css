@@ -225,6 +225,7 @@ button { font-family: inherit; }
 }
 .setting-row:first-child { border-top: 0; }
 .setting-label { font-size: var(--setting-label-font-size); font-weight: 600; }
+.setting-text { flex: 1; min-width: 0; padding: 8px 0; }
 .device-status { font-size: 15px; font-weight: 500; color: var(--muted); }
 .seg-group { display: flex; gap: var(--nav-gap); }
 .seg-group .seg-button { height: var(--small-button-height); font-size: 16px; }

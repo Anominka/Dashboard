@@ -37,7 +37,7 @@ class MemoryStore {
     this._trips = []; // oldest first
     this._runs = [];  // newest first
     this._currentTrip = null;
-    this.settings = { theme: "night", brightness: 100 };
+    this.settings = { theme: "night", brightness: 100, motion: false };
     this.persistent = false;
     this.statusText = "Not saved: the data is lost when the page closes.";
     if (sampleTrips) this._seedSampleTrips();
@@ -176,6 +176,7 @@ class MemoryStore {
     const settings = {
       theme: s.theme === "day" ? "day" : "night",
       brightness: finite(s.brightness) ? Math.max(10, Math.min(100, Math.round(s.brightness))) : 100,
+      motion: s.motion === true,
     };
     return { trips, runs, settings };
   }
@@ -252,17 +253,20 @@ class PersistentStore extends MemoryStore {
 
   async _load() {
     const read = (name) => requestResult(this._db.transaction(name).objectStore(name).getAll());
-    const [trips, runs, theme, brightness, current] = await Promise.all([
+    const setting = (name) => requestResult(this._db.transaction("settings").objectStore("settings").get(name));
+    const [trips, runs, theme, brightness, motion, current] = await Promise.all([
       read("trips"),
       read("runs"),
-      requestResult(this._db.transaction("settings").objectStore("settings").get("theme")),
-      requestResult(this._db.transaction("settings").objectStore("settings").get("brightness")),
+      setting("theme"),
+      setting("brightness"),
+      setting("motion"),
       requestResult(this._db.transaction("current_trip").objectStore("current_trip").get(CURRENT_TRIP_KEY)),
     ]);
     this._trips = trips;
     this._runs = runs.reverse(); // stored oldest first; kept newest first
     if (theme === "day" || theme === "night") this.settings.theme = theme;
     if (Number.isFinite(brightness)) this.settings.brightness = Math.max(10, Math.min(100, brightness));
+    this.settings.motion = motion === true;
     this._currentTrip = current === undefined ? null : current;
   }
 
@@ -306,6 +310,7 @@ class PersistentStore extends MemoryStore {
     this._write("settings", (settings) => {
       settings.put(this.settings.theme, "theme");
       settings.put(this.settings.brightness, "brightness");
+      settings.put(this.settings.motion, "motion");
     });
   }
 
@@ -327,6 +332,7 @@ class PersistentStore extends MemoryStore {
       for (const run of [...this._runs].reverse()) runs.add(run); // oldest first
       settings.put(this.settings.theme, "theme");
       settings.put(this.settings.brightness, "brightness");
+      settings.put(this.settings.motion, "motion");
     });
   }
 }

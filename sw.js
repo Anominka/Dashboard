@@ -18,6 +18,7 @@ const FILES = [
   "telemetry.js",
   "simulated_source.js",
   "gps_reader.js",
+  "motion.js",
   "performance.js",
   "trip_tracker.js",
   "store.js",

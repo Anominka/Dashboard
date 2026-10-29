@@ -24,6 +24,7 @@ class AccelerationTimer {
   constructor({ recentRuns = [], best = {}, onRun = null } = {}) {
     this.state = WAITING;
     this.onRun = onRun;
+    this.shape = null; // optional: an object with crossingTime(fraction, t0, t1, deltaKmh), see motion.js
     this.results = this._emptyResults(); // last run's times
     this.best = {};
     for (const target of TARGETS_KMH) this.best[target] = best[target] ?? null;
@@ -130,11 +131,17 @@ class AccelerationTimer {
     return true;
   }
 
-  /** Time at which the speed crossed `level`, interpolated between two readings. */
+  /** Time at which the speed crossed `level`, interpolated between two readings. With `shape` (the
+   *  motion sensor) the crossing is placed where the sensor says the speed was gained; without it,
+   *  or when the sensor is not trustworthy, the acceleration is assumed constant between readings. */
   _crossingTime(level, speed, now, prevSpeed, prevTime) {
     if (prevSpeed === null || speed === prevSpeed) return now;
-    const fraction = (level - prevSpeed) / (speed - prevSpeed);
-    return prevTime + (now - prevTime) * Math.max(0, Math.min(1, fraction));
+    const fraction = Math.max(0, Math.min(1, (level - prevSpeed) / (speed - prevSpeed)));
+    if (this.shape && fraction > 0 && fraction < 1) {
+      const time = this.shape.crossingTime(fraction, prevTime, now, speed - prevSpeed);
+      if (time !== null) return time;
+    }
+    return prevTime + (now - prevTime) * fraction;
   }
 
   /** Finished time, else the live time while running, else null. */

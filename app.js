@@ -42,7 +42,8 @@ async function main() {
   // Normally the phone's own GPS. There is no OBD reader yet, so OBD stays "not connected".
   // With ?sim both are simulated: one fake vehicle shared by the GPS and OBD readers.
   let gps, obd;
-  if (new URLSearchParams(location.search).has("sim")) {
+  const simulated = new URLSearchParams(location.search).has("sim");
+  if (simulated) {
     const simulator = new DriveSimulator();
     gps = new SimulatedGPS(simulator);
     obd = new SimulatedOBD(simulator);
@@ -55,6 +56,7 @@ async function main() {
   trip.referenceL100 = store.referenceConsumption();
 
   const wakeLock = new ScreenWakeLock();
+  const motion = new MotionSensor();
 
   const applyTheme = (name) => {
     document.documentElement.dataset.theme = name;
@@ -67,7 +69,7 @@ async function main() {
     document.getElementById("dim").style.opacity = String(1 - percent / 100);
   };
 
-  const context = { telemetry, store, trip, wakeLock, onThemeChange: applyTheme, onBrightnessChange: applyBrightness };
+  const context = { telemetry, store, trip, wakeLock, motion, onThemeChange: applyTheme, onBrightnessChange: applyBrightness };
   const pages = {
     live: new LivePage(document.getElementById("page-live"), context),
     performance: new PerformancePage(document.getElementById("page-performance"), context),
@@ -76,6 +78,18 @@ async function main() {
     diagnostics: new DiagnosticsPage(document.getElementById("page-diagnostics"), context),
     settings: new SettingsPage(document.getElementById("page-settings"), context),
   };
+
+  // The motion sensor places the timers' crossings inside a GPS second. It belongs to the real GPS
+  // only: the simulated drive has no matching phone motion.
+  if (!simulated) pages.performance.timer.shape = motion;
+  if (store.settings.motion) {
+    // the phone only asks for motion permission after a tap, so start at the first tap
+    const start = () => {
+      document.removeEventListener("click", start);
+      if (store.settings.motion) motion.enable();
+    };
+    document.addEventListener("click", start);
+  }
 
   let activePage = "live";
   let lastSnapshot = null;
@@ -142,7 +156,7 @@ async function main() {
     navigator.serviceWorker.register("sw.js").catch((error) => console.error("No offline start", error));
   }
 
-  window.dashboard = { store, trip, telemetry, pages, showPage, wakeLock }; // handle for debugging in the console
+  window.dashboard = { store, trip, telemetry, pages, showPage, wakeLock, motion }; // handle for debugging in the console
 }
 
 main();

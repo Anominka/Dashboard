@@ -12,9 +12,10 @@ const STATE_TEXT = {
 
 class SettingsPage {
   /** `onThemeChange(name)` and `onBrightnessChange(percent)` apply the change to the whole app. */
-  constructor(root, { store, telemetry, wakeLock, onThemeChange, onBrightnessChange }) {
+  constructor(root, { store, telemetry, wakeLock, motion, onThemeChange, onBrightnessChange }) {
     this.store = store;
     this.wakeLock = wakeLock;
+    this.motion = motion;
     const settings = store.settings;
 
     this.themeButtons = [["Night", "night"], ["Day", "day"]].map(([label, name]) =>
@@ -41,6 +42,10 @@ class SettingsPage {
     this.gps = this._deviceRow("GPS receiver", () => telemetry.reconnect("gps"));
     this.obd = this._deviceRow("OBD-II adapter", () => telemetry.reconnect("obd"));
 
+    this.motionButtons = [["On", true], ["Off", false]].map(([label, on]) =>
+      h("button", { class: "seg-button", onclick: () => this.setMotion(on) }, label));
+    this.motionStatus = h("div", { class: "device-status" });
+
     this.screenStatus = h("div", { class: "device-status" });
     this.installStatus = h("div", { class: "device-status" });
     wakeLock.onChange(() => this.refreshApp());
@@ -57,6 +62,9 @@ class SettingsPage {
         h("div", { class: "setting-row" }, h("div", { class: "setting-label" }, "Brightness"), this.slider),
         this.gps.row,
         this.obd.row,
+        h("div", { class: "setting-row" },
+          h("div", { class: "setting-text" }, h("div", { class: "setting-label" }, "Motion sensor"), this.motionStatus),
+          h("div", { class: "seg-group" }, this.motionButtons)),
         h("div", { class: "setting-row" },
           h("div", {}, h("div", { class: "setting-label" }, "Keep screen on"), this.screenStatus)),
         h("div", { class: "setting-row" },
@@ -82,7 +90,24 @@ class SettingsPage {
     return navigator.standalone === true || window.matchMedia("(display-mode: standalone)").matches;
   }
 
+  /** Switches the motion sensor on or off. Must run straight from the tap: the phone only asks for
+   *  permission in answer to one. */
+  setMotion(on) {
+    this.store.settings.motion = on;
+    this.store.saveSettings();
+    if (on) this.motion.enable();
+    else this.motion.disable();
+    this.refreshMotion();
+  }
+
+  refreshMotion() {
+    const on = this.store.settings.motion;
+    this.motionButtons.forEach((button, index) => button.classList.toggle("active", on === (index === 0)));
+    this.motionStatus.textContent = this.motion.message(on);
+  }
+
   refreshApp() {
+    this.refreshMotion();
     this.screenStatus.textContent = this.wakeLock.message;
     this.installStatus.textContent = SettingsPage.isInstalled()
       ? "Opened from the Home Screen."
@@ -163,6 +188,7 @@ class SettingsPage {
   }
 
   update(snap) {
+    this.motionStatus.textContent = this.motion.message(this.store.settings.motion); // shows the live reading
     for (const [device, state, error] of [
       [this.gps, snap.gpsState, snap.gpsError],
       [this.obd, snap.obdState, snap.obdError],
