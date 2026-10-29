@@ -24,6 +24,7 @@ function check(name, test) {
 function listFiles(dir, prefix = "") {
   const found = [];
   for (const entry of fs.readdirSync(path.join(root, dir), { withFileTypes: true })) {
+    if (entry.name === ".git") continue; // this folder is its own git repository
     const relative = prefix + entry.name;
     if (entry.isDirectory()) found.push(...listFiles(path.join(dir, entry.name), relative + "/"));
     else found.push(relative);
