@@ -38,10 +38,10 @@ function routeBounds(route) {
   return bounds;
 }
 
-/** The closest zoom level at which the whole route fits in `width` x `height` pixels with `padding`
- *  to spare, and the world pixel at the top-left corner of the view, with the route in the middle. */
-function fitView(bounds, width, height, padding = MAP_PADDING_PX) {
-  let zoom = MAP_MAX_ZOOM;
+/** The closest zoom level (up to `maxZoom`) at which the whole route fits in `width` x `height` pixels
+ *  with `padding` to spare, and the world pixel at the top-left corner of the view, with the route in the middle. */
+function fitView(bounds, width, height, padding = MAP_PADDING_PX, maxZoom = MAP_MAX_ZOOM) {
+  let zoom = maxZoom;
   for (; zoom > MAP_MIN_ZOOM; zoom--) {
     const routeWidth = worldX(bounds.maxLon, zoom) - worldX(bounds.minLon, zoom);
     const routeHeight = worldY(bounds.minLat, zoom) - worldY(bounds.maxLat, zoom);

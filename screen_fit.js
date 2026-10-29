@@ -12,7 +12,7 @@
  */
 
 // Change this on every update that is pushed, so Settings shows which version the phone is running.
-const APP_VERSION = "v10";
+const APP_VERSION = "v11";
 
 const MIN_MISSING_PX = 20;  // the window is shorter than the screen by more than this...
 const MAX_MISSING_PX = 80;  // ...but by less than this (about a status bar), or it is left alone

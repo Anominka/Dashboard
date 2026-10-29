@@ -18,6 +18,8 @@ class TripPage {
     });
 
     this.scoreValue = h("div", { class: "score-value" }, "100");
+    this.liveMap = new LiveMap();
+    this._snapshot = null;
     this.message = h("div", { class: "trip-message" });
     this.pauseButton = h("button", { class: "action-button", onclick: () => this.togglePause() }, "Pause trip");
     this.endButton = h("button", { class: "action-button primary", onclick: () => this.endTrip() }, "End trip");
@@ -28,7 +30,7 @@ class TripPage {
         h("div", { class: "label" }, "Efficiency"),
         h("div", { class: "score-line" }, this.scoreValue, h("span", { class: "score-caption" }, "out of 100")),
       ),
-      h("div", { class: "spacer" }),
+      this.liveMap.element,
       this.message,
       h("div", { class: "button-row" }, this.pauseButton, this.endButton),
     );
@@ -67,9 +69,12 @@ class TripPage {
     this._messageTimer = setTimeout(() => { this.message.textContent = ""; }, durationMs);
   }
 
-  update() {
+  update(snap) {
+    if (snap) this._snapshot = snap; // End trip redraws without a new reading
     const trip = this.trip;
     const v = this.values;
+    const position = this._snapshot && this._snapshot.position;
+    this.liveMap.update(trip.route, position ? { lat: position.lat, lon: position.lon } : null, this.store.settings.mapTiles);
     v["Distance"].textContent = trip.distanceKm.toFixed(1) + " km";
     v["Time"].textContent = formatDuration(trip.elapsedS);
     v["Avg speed"].textContent = trip.avgSpeedKmh.toFixed(0) + " km/h";
