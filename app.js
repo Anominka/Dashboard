@@ -36,6 +36,8 @@ function recoverLeftoverTrip(store) {
 }
 
 async function main() {
+  fitToScreen();
+  for (const name of ["resize", "orientationchange", "pageshow"]) window.addEventListener(name, fitToScreen);
   const store = await openStore();
   const recovered = recoverLeftoverTrip(store);
 

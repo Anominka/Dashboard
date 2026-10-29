@@ -48,6 +48,7 @@ class SettingsPage {
 
     this.screenStatus = h("div", { class: "device-status" });
     this.installStatus = h("div", { class: "device-status" });
+    this.screenInfo = h("div", { class: "device-status small-print" });
     wakeLock.onChange(() => this.refreshApp());
 
     this.storageText = h("div", { class: "muted-text" });
@@ -68,7 +69,7 @@ class SettingsPage {
         h("div", { class: "setting-row" },
           h("div", {}, h("div", { class: "setting-label" }, "Keep screen on"), this.screenStatus)),
         h("div", { class: "setting-row" },
-          h("div", {}, h("div", { class: "setting-label" }, "Home Screen"), this.installStatus)),
+          h("div", {}, h("div", { class: "setting-label" }, "Home Screen"), this.installStatus, this.screenInfo)),
       ),
       h("div", { class: "panel backup-panel" },
         h("div", { class: "label" }, "Backup"),
@@ -108,6 +109,7 @@ class SettingsPage {
 
   refreshApp() {
     this.refreshMotion();
+    this.screenInfo.textContent = describeScreen();
     this.screenStatus.textContent = this.wakeLock.message;
     this.installStatus.textContent = SettingsPage.isInstalled()
       ? "Opened from the Home Screen."

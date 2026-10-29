@@ -229,6 +229,7 @@ button { font-family: inherit; }
 .setting-label { font-size: var(--setting-label-font-size); font-weight: 600; }
 .setting-text { flex: 1; min-width: 0; padding: 8px 0; }
 .device-status { font-size: 15px; font-weight: 500; color: var(--muted); }
+.small-print { margin-top: 4px; font-size: 12px; overflow-wrap: anywhere; }
 .seg-group { display: flex; gap: var(--nav-gap); }
 .seg-group .seg-button { height: var(--small-button-height); font-size: 16px; }
 .slider { width: 160px; height: var(--small-button-height); accent-color: var(--accent); }

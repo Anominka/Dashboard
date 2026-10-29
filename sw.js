@@ -24,6 +24,7 @@ const FILES = [
   "store.js",
   "widgets.js",
   "keep_awake.js",
+  "screen_fit.js",
   "live_page.js",
   "trip_page.js",
   "performance_page.js",
