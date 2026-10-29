@@ -199,18 +199,16 @@ button { font-family: inherit; }
 .total { display: flex; flex-direction: column; gap: 6px; }
 .total-value { font-size: var(--total-font-size); line-height: 1; font-weight: 700; }
 
-/* --- Trip detail and map (History) --- */
+/* --- Trip map (the dropdown under a trip in History) --- */
 
-.history-list, .trip-detail { flex: 1; min-height: 0; display: flex; flex-direction: column; gap: var(--page-gap); }
-.detail-header { flex: none; display: flex; align-items: center; gap: 12px; }
-.detail-title { font-size: 22px; font-weight: 700; }
-.stats.three { flex: none; grid-template-columns: repeat(3, 1fr); gap: 14px 10px; }
+.trip-drop { display: flex; flex-direction: column; gap: 12px; padding: 4px 0 14px; }
+.drop-stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
 .stat-value.small { font-size: 22px; }
 
 .trip-map {
   position: relative;
-  flex: 1;
-  min-height: 180px;
+  flex: none;
+  height: 280px;
   overflow: hidden;
   border: 1px solid var(--border);
   border-radius: var(--panel-radius);
@@ -235,7 +233,7 @@ button { font-family: inherit; }
 
 .table-panel { flex: 1; min-height: 0; display: flex; flex-direction: column; }
 .table { flex: 1; min-height: 0; display: flex; flex-direction: column; }
-.table-header, .table-row { display: grid; grid-template-columns: var(--columns); align-items: center; column-gap: 8px; }
+.table-header, .table-row { display: grid; grid-template-columns: var(--columns); align-items: center; column-gap: var(--table-gap, 8px); }
 .table-header { height: 28px; flex: none; }
 .table-header .cell {
   font-size: 13px;
@@ -251,7 +249,8 @@ button { font-family: inherit; }
 .cell.muted { color: var(--muted); }
 .table-row.tappable { cursor: pointer; }
 .table-row.tappable:active { background: var(--button); }
-.table-row.tappable .cell:last-child { text-align: right; color: var(--accent); font-size: 22px; }
+.table-row.tappable .cell:last-child { text-align: right; color: var(--accent); font-size: 22px; transition: transform 0.15s; }
+.table-row.open .cell:last-child { transform: rotate(90deg); } /* the arrow points down while the map is open */
 
 /* --- Settings --- */
 

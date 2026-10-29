@@ -23,7 +23,7 @@ function formatWhen(moment, now = new Date()) {
     return "Today " + moment.toLocaleTimeString("en-GB", { hour: "2-digit", minute: "2-digit" });
   }
   if (days === 1) return "Yesterday";
-  return moment.toLocaleDateString("en-GB", { weekday: "short", day: "2-digit", month: "short" }).replace(",", "");
+  return formatDay(moment);
 }
 
 class PerformancePage {

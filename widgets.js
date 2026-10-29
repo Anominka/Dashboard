@@ -47,8 +47,9 @@ function fillTable(table, rows, cellClasses = [], onRowClick = null) {
   );
 }
 
-function makeTable(headers, columns) {
-  return h("div", { class: "table", style: `--columns: ${columns}` },
+/** `columns` is a CSS grid template such as "2fr 1fr 1fr"; `gap` is the space between columns. */
+function makeTable(headers, columns, gap = "8px") {
+  return h("div", { class: "table", style: `--columns: ${columns}; --table-gap: ${gap}` },
     h("div", { class: "table-header" }, headers.map((text) => h("div", { class: "cell" }, text))),
     h("div", { class: "table-body" }),
   );
