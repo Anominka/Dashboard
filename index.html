@@ -1,0 +1,62 @@
+<!doctype html>
+<html lang="en" data-theme="night">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Dashboard">
+<meta name="theme-color" content="#0D1117">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="apple-touch-icon" href="icons/icon-180.png">
+<title>Car Dashboard</title>
+<link rel="stylesheet" href="theme.css">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<div id="app">
+  <header class="top-bar">
+    <div class="page-title" id="page-title">Live</div>
+    <div class="status">
+      <div class="status-item"><span class="dot" id="gps-dot"></span>GPS</div>
+      <div class="status-item"><span class="dot" id="obd-dot"></span>OBD</div>
+    </div>
+  </header>
+
+  <main class="pages">
+    <section class="page active" id="page-live" data-title="Live"></section>
+    <section class="page" id="page-performance" data-title="Performance"></section>
+    <section class="page" id="page-trip" data-title="Trip"></section>
+    <section class="page" id="page-history" data-title="History"></section>
+    <section class="page" id="page-diagnostics" data-title="Diagnostics"></section>
+    <section class="page" id="page-settings" data-title="Settings"></section>
+  </main>
+
+  <nav class="nav" id="nav">
+    <button data-page="live" class="active">Live</button>
+    <button data-page="performance">Perf.</button>
+    <button data-page="trip">Trip</button>
+    <button data-page="history">History</button>
+    <button data-page="diagnostics">Diag.</button>
+    <button data-page="settings">Settings</button>
+  </nav>
+</div>
+<div id="dim"></div>
+
+<script src="telemetry.js"></script>
+<script src="simulated_source.js"></script>
+<script src="gps_reader.js"></script>
+<script src="performance.js"></script>
+<script src="trip_tracker.js"></script>
+<script src="store.js"></script>
+<script src="widgets.js"></script>
+<script src="keep_awake.js"></script>
+<script src="live_page.js"></script>
+<script src="trip_page.js"></script>
+<script src="performance_page.js"></script>
+<script src="history_page.js"></script>
+<script src="diagnostics_page.js"></script>
+<script src="settings_page.js"></script>
+<script src="app.js"></script>
+</body>
+</html>

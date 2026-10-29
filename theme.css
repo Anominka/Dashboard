@@ -1,0 +1,84 @@
+/* Central place for colors, fonts and sizes (web counterpart of theme.py). */
+
+@font-face { font-family: "Barlow Semi Condensed"; font-weight: 500; src: url("fonts/BarlowSemiCondensed-Medium.ttf") format("truetype"); }
+@font-face { font-family: "Barlow Semi Condensed"; font-weight: 600; src: url("fonts/BarlowSemiCondensed-SemiBold.ttf") format("truetype"); }
+@font-face { font-family: "Barlow Semi Condensed"; font-weight: 700; src: url("fonts/BarlowSemiCondensed-Bold.ttf") format("truetype"); }
+
+:root {
+  --font: "Barlow Semi Condensed", "Arial Narrow", Arial, sans-serif;
+
+  --top-bar-height: 44px;
+  --nav-bar-height: 64px;
+  --nav-button-height: 48px;
+  --nav-button-radius: 10px;
+  --nav-button-font-size: 13px;
+  --title-font-size: 18px;
+  --status-font-size: 15px;
+  --status-dot-size: 10px;
+  --status-dot-gap: 6px;
+  --status-gap: 16px;
+
+  --page-padding-x: 16px;
+  --page-padding-bottom: 12px;
+  --page-gap: 12px;
+  --nav-gap: 6px;
+
+  --panel-radius: 12px;
+  --panel-padding-x: 16px;
+  --panel-padding-y: 12px;
+
+  --label-font-size: 14px;
+  --label-letter-spacing: 0.08em;
+
+  --speed-font-size: 150px;
+  --speed-unit-font-size: 26px;
+  --trip-row-font-size: 22px;
+  --tile-height: 92px;
+  --tile-font-size: 32px;
+  --stat-font-size: 32px;
+  --score-font-size: 64px;
+  --score-caption-font-size: 16px;
+  --action-button-height: 48px;
+  --action-button-font-size: 18px;
+  --small-button-height: 44px;
+  --status-line-font-size: 18px;
+  --timer-font-size: 56px;
+  --timer-best-font-size: 18px;
+  --run-row-font-size: 18px;
+  --run-row-height: 38px;
+  --total-font-size: 28px;
+  --table-row-height: 40px;
+  --table-font-size: 17px;
+  --table-small-font-size: 14px;
+  --setting-label-font-size: 20px;
+  --setting-row-height: 64px;
+}
+
+/* Colors follow LAYOUT.md. "warning" is our own addition (GPS connected, no fix). */
+:root, :root[data-theme="night"] {
+  --background: #0D1117;
+  --panel: #161B22;
+  --border: #2D3540;
+  --text: #E8EDF3;
+  --muted: #A2ADBA;
+  --accent: #60A5FA;
+  --on-accent: #08172E;
+  --connected: #22D3EE;
+  --warning: #FFB74D;
+  --nav-background: #11161D;
+  --button: #1C232D;
+}
+
+:root[data-theme="day"] {
+  --background: #EEF1F5;
+  --panel: #FFFFFF;
+  --border: #CDD5DF;
+  --text: #10151C;
+  --muted: #4A5563;
+  --accent: #2563EB;
+  --on-accent: #FFFFFF;
+  --connected: #0E7490;
+  --warning: #B26A00;
+  --nav-background: #E3E8EF;
+  --button: #F1F4F8;
+}
