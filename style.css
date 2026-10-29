@@ -199,6 +199,38 @@ button { font-family: inherit; }
 .total { display: flex; flex-direction: column; gap: 6px; }
 .total-value { font-size: var(--total-font-size); line-height: 1; font-weight: 700; }
 
+/* --- Trip detail and map (History) --- */
+
+.history-list, .trip-detail { flex: 1; min-height: 0; display: flex; flex-direction: column; gap: var(--page-gap); }
+.detail-header { flex: none; display: flex; align-items: center; gap: 12px; }
+.detail-title { font-size: 22px; font-weight: 700; }
+.stats.three { flex: none; grid-template-columns: repeat(3, 1fr); gap: 14px 10px; }
+.stat-value.small { font-size: 22px; }
+
+.trip-map {
+  position: relative;
+  flex: 1;
+  min-height: 180px;
+  overflow: hidden;
+  border: 1px solid var(--border);
+  border-radius: var(--panel-radius);
+  background: var(--panel);
+}
+.map-tiles { position: absolute; inset: 0; }
+/* the map images are light; in the Night theme they are inverted so they do not glare */
+:root[data-theme="night"] .map-tiles { filter: invert(1) hue-rotate(180deg) brightness(0.85) contrast(0.9) saturate(0.7); }
+.map-tile { position: absolute; width: 256px; height: 256px; max-width: none; -webkit-user-drag: none; }
+.map-route { position: absolute; inset: 0; width: 100%; height: 100%; }
+.map-line { fill: none; stroke: var(--accent); stroke-width: 4; stroke-linejoin: round; stroke-linecap: round; }
+.map-start { fill: var(--connected); stroke: #fff; stroke-width: 2; }
+.map-end { fill: var(--warning); stroke: #fff; stroke-width: 2; }
+.map-note { position: absolute; left: 12px; right: 12px; top: 12px; font-size: 14px; font-weight: 500; color: var(--muted); }
+.map-attribution {
+  position: absolute; right: 6px; bottom: 4px;
+  padding: 1px 5px; border-radius: 4px;
+  font-size: 11px; background: rgba(255, 255, 255, 0.8); color: #333;
+}
+
 /* --- Tables (History, Diagnostics) --- */
 
 .table-panel { flex: 1; min-height: 0; display: flex; flex-direction: column; }
@@ -217,6 +249,9 @@ button { font-family: inherit; }
 .cell { font-size: var(--table-font-size); font-weight: 500; line-height: 1.15; overflow-wrap: anywhere; }
 .cell.small { font-size: var(--table-small-font-size); }
 .cell.muted { color: var(--muted); }
+.table-row.tappable { cursor: pointer; }
+.table-row.tappable:active { background: var(--button); }
+.table-row.tappable .cell:last-child { text-align: right; color: var(--accent); font-size: 22px; }
 
 /* --- Settings --- */
 

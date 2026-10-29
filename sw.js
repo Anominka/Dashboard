@@ -28,6 +28,7 @@ const FILES = [
   "live_page.js",
   "trip_page.js",
   "performance_page.js",
+  "trip_map.js",
   "history_page.js",
   "diagnostics_page.js",
   "settings_page.js",

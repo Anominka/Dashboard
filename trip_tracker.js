@@ -8,6 +8,20 @@ const MOVING_KMH = 1.0;            // above this the car counts as moving
 const SUSTAINED_READINGS = 3;      // a speed must last this many readings to count as the trip's max
 const ACCEL_WINDOW_S = 1.0;        // acceleration is measured over about this long, to smooth GPS noise
 
+// The route: a point is added when the car has moved this far from the last one (slower than the
+// minimum speed, GPS drift would draw a scribble), and recording stops at the maximum (about 8 hours).
+const ROUTE_MIN_STEP_M = 8;
+const ROUTE_MIN_SPEED_KMH = 3;
+const ROUTE_MAX_POINTS = 30000;
+
+/** Distance in metres between two places on the Earth (haversine). */
+function distanceMeters(lat1, lon1, lat2, lon2) {
+  const rad = Math.PI / 180;
+  const a = Math.sin(((lat2 - lat1) * rad) / 2) ** 2 +
+    Math.cos(lat1 * rad) * Math.cos(lat2 * rad) * Math.sin(((lon2 - lon1) * rad) / 2) ** 2;
+  return 2 * 6371000 * Math.asin(Math.min(1, Math.sqrt(a)));
+}
+
 function startOfToday() {
   const now = new Date();
   return new Date(now.getFullYear(), now.getMonth(), now.getDate());
@@ -31,6 +45,8 @@ class TripTracker {
     this.hasFuelData = false;
     this.harshAccelS = 0.0;
     this.harshBrakeS = 0.0;
+    this.route = [];    // [time as ms since 1970, latitude, longitude] of each point, in order
+    this._lastRouteReading = null;
     this._forgetLastReading();
   }
 
@@ -67,6 +83,23 @@ class TripTracker {
       }
     }
     this._lastTime = now;
+    this._recordRoute(snapshot, speed);
+  }
+
+  /** Adds the car's position to the route when it is a new reading and the car has moved on. */
+  _recordRoute(snapshot, speed) {
+    const position = snapshot.position;
+    if (!position || snapshot.speedTimeS === this._lastRouteReading) return;
+    this._lastRouteReading = snapshot.speedTimeS;
+    if (speed < ROUTE_MIN_SPEED_KMH || this.route.length >= ROUTE_MAX_POINTS) return;
+    const last = this.route[this.route.length - 1];
+    if (last && distanceMeters(last[1], last[2], position.lat, position.lon) < ROUTE_MIN_STEP_M) return;
+    // six decimals are about 0.1 m, more than a phone's GPS can tell
+    this.route.push([
+      Math.round(snapshot.positionEpochMs),
+      Math.round(position.lat * 1e6) / 1e6,
+      Math.round(position.lon * 1e6) / 1e6,
+    ]);
   }
 
   /** The lowest of the last few readings, so a one-reading spike never becomes the max. */
@@ -95,13 +128,15 @@ class TripTracker {
     const state = {};
     for (const name of TripTracker.STATE_FIELDS) state[name] = this[name];
     state.startedOn = dayToText(this.startedOn);
+    state.route = this.route;
     return state;
   }
 
-  /** Load progress saved by toState(). */
+  /** Load progress saved by toState(). A backup made before routes were recorded has none. */
   restore(state) {
     for (const name of TripTracker.STATE_FIELDS) this[name] = state[name];
     this.startedOn = textToDay(state.startedOn) || startOfToday();
+    this.route = Array.isArray(state.route) ? state.route : [];
   }
 
   /** The finished trip as a record, or null if too short to be worth saving. */
@@ -113,6 +148,7 @@ class TripTracker {
       durationS: this.elapsedS,
       lPer100km: this.avgConsumptionL100,
       score: this.score,
+      route: this.route,
     };
   }
 

@@ -69,10 +69,35 @@ class DriveSimulator {
   }
 }
 
+// A closed road of about 5.3 km, in metres east and north of its starting point. The fake drive
+// goes round and round it, so the trip map has a route to show.
+const SIM_ROAD_M = [
+  [0, 0], [1200, 0], [1500, 300], [1500, 900], [1200, 1200], [0, 1200], [-300, 900], [-300, 300],
+];
+const SIM_ORIGIN = { lat: 47.3769, lon: 8.5417 }; // where the road starts; any place would do
+
+/** Where on the road the car is after driving `distanceM` metres, as {lat, lon}. */
+function simulatedPosition(distanceM) {
+  const corners = SIM_ROAD_M.concat([SIM_ROAD_M[0]]);
+  const lengths = corners.slice(1).map((end, i) => Math.hypot(end[0] - corners[i][0], end[1] - corners[i][1]));
+  let left = distanceM % lengths.reduce((a, b) => a + b, 0);
+  let i = 0;
+  while (left > lengths[i]) left -= lengths[i++];
+  const share = left / lengths[i];
+  const east = corners[i][0] + (corners[i + 1][0] - corners[i][0]) * share;
+  const north = corners[i][1] + (corners[i + 1][1] - corners[i][1]) * share;
+  return {
+    lat: SIM_ORIGIN.lat + north / 111320,
+    lon: SIM_ORIGIN.lon + east / (111320 * Math.cos((SIM_ORIGIN.lat * Math.PI) / 180)),
+  };
+}
+
 class SimulatedGPS {
   constructor(simulator = new DriveSimulator()) {
     this.sim = simulator;
     this.connected = false;
+    this._distanceM = 0;
+    this._lastReadAt = null;
   }
 
   connect() {
@@ -81,7 +106,11 @@ class SimulatedGPS {
   }
 
   read() {
-    return { speedKmh: this.sim.state().speed, hasFix: true };
+    const speed = this.sim.state().speed;
+    const now = performance.now();
+    if (this._lastReadAt !== null) this._distanceM += (speed / 3.6) * Math.min((now - this._lastReadAt) / 1000, 1);
+    this._lastReadAt = now;
+    return { speedKmh: speed, hasFix: true, position: { ...simulatedPosition(this._distanceM), accuracyM: 5 } };
   }
 }
 

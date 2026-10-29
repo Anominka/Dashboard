@@ -36,12 +36,12 @@ function stateClass(state) {
 }
 
 /** Table with a header row. `rows` are arrays of cell texts; `cellClasses` (optional)
- *  are arrays of extra classes with the same shape. */
-function fillTable(table, rows, cellClasses = []) {
+ *  are arrays of extra classes with the same shape. With `onRowClick(rowIndex)` the rows can be tapped. */
+function fillTable(table, rows, cellClasses = [], onRowClick = null) {
   const body = table.querySelector(".table-body");
   body.replaceChildren(
     ...rows.map((row, r) =>
-      h("div", { class: "table-row" },
+      h("div", onRowClick ? { class: "table-row tappable", onclick: () => onRowClick(r) } : { class: "table-row" },
         row.map((text, c) => h("div", { class: "cell " + ((cellClasses[r] || [])[c] || "") }, text))),
     ),
   );

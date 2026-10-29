@@ -9,7 +9,9 @@
  * GPS reader interface (see simulated_source.js):
  *     connect() -> bool or Promise<bool>   (may be called again to reconnect)
  *     connected -> bool (property)
- *     read() -> { speedKmh, hasFix, time } (synchronous: returns the latest value; `time` is
+ *     read() -> { speedKmh, hasFix, time, position }
+ *                                          (synchronous: returns the latest value; `position` is
+ *                                           optional: {lat, lon, accuracyM}; `time` is
  *                                           optional: when the speed was measured, in seconds on the
  *                                           performance.now() clock. A reader that measures
  *                                           continuously leaves it out.)
@@ -30,6 +32,8 @@
  *     gpsError, obdError message for the user, or null
  *     speedKmh           from GPS only (accurate; used for the timers)
  *     speedTimeS         when speedKmh was measured, in seconds (see above); null without a speed
+ *     position           {lat, lon, accuracyM} where the car was at that reading, or null
+ *     positionEpochMs    the time of that reading as milliseconds since 1970, or null
  *     obdSpeedKmh        the car's own speed
  *     bestSpeedKmh       GPS speed, or the car's own speed when GPS has none
  *     rpm, coolantC, fuelRateLph, fuelLPer100km
@@ -103,6 +107,8 @@ class Telemetry {
       obdError: this.obd.lastError || null,
       speedKmh: null,
       speedTimeS: null,
+      position: null,
+      positionEpochMs: null,
       obdSpeedKmh: null,
       rpm: null,
       coolantC: null,
@@ -115,6 +121,11 @@ class Telemetry {
       snap.speedKmh = gps.speedKmh;
       snap.speedTimeS = gps.speedKmh === null ? null : gps.time ?? snap.time / 1000;
       snap.gpsFix = gps.hasFix;
+      if (gps.speedKmh !== null && gps.position) {
+        snap.position = gps.position;
+        // when the reading was taken, as a date, so trips can be lined up with each other later
+        snap.positionEpochMs = Date.now() - (snap.time / 1000 - snap.speedTimeS) * 1000;
+      }
     }
     if (snap.obdConnected) {
       const obd = this.obd.read();

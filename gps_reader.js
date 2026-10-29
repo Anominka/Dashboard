@@ -26,13 +26,15 @@ const GPS_STALE_TIMEOUT_S = 3.0;     // no good fix for this long: no speed ("--
 // Geolocation error codes
 const PERMISSION_DENIED = 1;
 
-/** Decides which fixes to trust and what speed to report. A fix is {speedKmh, valid, accuracyM}. */
+/** Decides which fixes to trust and what speed to report. A fix is {speedKmh, valid, accuracyM, lat, lon}
+ *  (the last two may be missing). */
 class GPSFilter {
   constructor() {
     this._speed = null;       // last accepted speed
     this._acceptedAt = null;  // when it was accepted
     this._validAt = null;     // when the last good (not necessarily accepted) fix arrived
     this._rejects = 0;
+    this._position = null;    // {lat, lon, accuracyM} of the fix that gave the accepted speed
   }
 
   /** `now` is a time in seconds (for example performance.now() / 1000). */
@@ -57,6 +59,9 @@ class GPSFilter {
     this._speed = speed;
     this._acceptedAt = now;
     this._rejects = 0;
+    this._position = fix.lat === undefined || fix.lat === null || fix.lon === null
+      ? null
+      : { lat: fix.lat, lon: fix.lon, accuracyM: fix.accuracyM };
   }
 
   static _isGood(fix) {
@@ -64,12 +69,13 @@ class GPSFilter {
   }
 
   /** The speed to report right now, or no speed and no fix if the data is stale.
-   *  `time` is when that speed was measured, so a timer can tell a new reading from a repeat. */
+   *  `time` is when that speed was measured, so a timer can tell a new reading from a repeat.
+   *  `position` is where the car was then ({lat, lon, accuracyM}), or null if the phone gave none. */
   output(now) {
     if (this._validAt === null || this._speed === null || now - this._validAt > GPS_STALE_TIMEOUT_S) {
       return { speedKmh: null, hasFix: false };
     }
-    return { speedKmh: this._speed, hasFix: true, time: this._acceptedAt };
+    return { speedKmh: this._speed, hasFix: true, time: this._acceptedAt, position: this._position };
   }
 }
 
@@ -78,10 +84,14 @@ function positionToFix(position) {
   const coords = position.coords;
   const speedKmh = typeof coords.speed === "number" ? coords.speed * MS_TO_KMH : null;
   const valid = speedKmh !== null && speedKmh >= 0 && speedKmh <= MAX_PLAUSIBLE_KMH;
+  const placed = Number.isFinite(coords.latitude) && Number.isFinite(coords.longitude) &&
+    Math.abs(coords.latitude) <= 90 && Math.abs(coords.longitude) <= 180;
   return {
     speedKmh: valid ? speedKmh : 0.0,
     valid,
     accuracyM: typeof coords.accuracy === "number" ? coords.accuracy : null,
+    lat: placed ? coords.latitude : null,
+    lon: placed ? coords.longitude : null,
   };
 }
 

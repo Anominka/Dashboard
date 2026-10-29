@@ -46,6 +46,17 @@ class SettingsPage {
       h("button", { class: "seg-button", onclick: () => this.setMotion(on) }, label));
     this.motionStatus = h("div", { class: "device-status" });
 
+    this.mapButtons = [["On", true], ["Off", false]].map(([label, on]) =>
+      h("button", {
+        class: "seg-button",
+        onclick: () => {
+          settings.mapTiles = on;
+          store.saveSettings();
+          this.refreshMapSetting();
+        },
+      }, label));
+    this.mapStatus = h("div", { class: "device-status" });
+
     this.screenStatus = h("div", { class: "device-status" });
     this.installStatus = h("div", { class: "device-status" });
     this.screenInfo = h("div", { class: "device-status small-print" });
@@ -66,6 +77,9 @@ class SettingsPage {
         h("div", { class: "setting-row" },
           h("div", { class: "setting-text" }, h("div", { class: "setting-label" }, "Motion sensor"), this.motionStatus),
           h("div", { class: "seg-group" }, this.motionButtons)),
+        h("div", { class: "setting-row" },
+          h("div", { class: "setting-text" }, h("div", { class: "setting-label" }, "Map background"), this.mapStatus),
+          h("div", { class: "seg-group" }, this.mapButtons)),
         h("div", { class: "setting-row" },
           h("div", {}, h("div", { class: "setting-label" }, "Keep screen on"), this.screenStatus)),
         h("div", { class: "setting-row" },
@@ -107,7 +121,16 @@ class SettingsPage {
     this.motionStatus.textContent = this.motion.message(on);
   }
 
+  refreshMapSetting() {
+    const on = this.store.settings.mapTiles;
+    this.mapButtons.forEach((button, index) => button.classList.toggle("active", on === (index === 0)));
+    this.mapStatus.textContent = on
+      ? "On: trip maps load map images from OpenStreetMap when online. That service sees which area you look at, not your trips."
+      : "Off: trip maps show the route line alone and ask no one for anything.";
+  }
+
   refreshApp() {
+    this.refreshMapSetting();
     this.refreshMotion();
     this.screenInfo.textContent = describeScreen();
     this.screenStatus.textContent = this.wakeLock.message;

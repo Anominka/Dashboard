@@ -19,6 +19,25 @@ const SAMPLE_TRIPS = [
   [2, 8.2, 15, 7.2, 69], [1, 31.0, 46, 6.9, 74], [0, 12.4, 21, 6.4, 82],
 ];
 
+/** A made-up route of about `km` kilometres for the demo trips: a point every 100 m, wandering around
+ *  a starting place chosen by `seed`. Not real data. */
+function sampleRoute(km, seed, endMs) {
+  let state = seed * 7919 + 13;
+  const random = () => { state = (state * 1103515245 + 12345) % 2147483648; return state / 2147483648; };
+  let lat = 47.37 + (random() - 0.5) * 0.08;
+  let lon = 8.54 + (random() - 0.5) * 0.12;
+  let heading = random() * 2 * Math.PI;
+  const points = [];
+  const count = Math.max(2, Math.round(km * 10));
+  for (let i = 0; i < count; i++) {
+    heading += (random() - 0.5) * (random() < 0.1 ? 2.2 : 0.35); // mostly straight, now and then a corner
+    lat += (100 * Math.cos(heading)) / 111320;
+    lon += (100 * Math.sin(heading)) / (111320 * Math.cos((lat * Math.PI) / 180));
+    points.push([endMs - (count - i) * 4000, Math.round(lat * 1e6) / 1e6, Math.round(lon * 1e6) / 1e6]);
+  }
+  return points;
+}
+
 /** A Date as "YYYY-MM-DD" in local time, and back. */
 function dayToText(day) {
   const pad = (n) => String(n).padStart(2, "0");
@@ -37,7 +56,7 @@ class MemoryStore {
     this._trips = []; // oldest first
     this._runs = [];  // newest first
     this._currentTrip = null;
-    this.settings = { theme: "night", brightness: 100, motion: false };
+    this.settings = { theme: "night", brightness: 100, motion: false, mapTiles: true };
     this.persistent = false;
     this.statusText = "Not saved: the data is lost when the page closes.";
     if (sampleTrips) this._seedSampleTrips();
@@ -45,10 +64,11 @@ class MemoryStore {
 
   _seedSampleTrips() {
     const today = startOfToday();
-    for (const [ago, km, minutes, l100, score] of SAMPLE_TRIPS) {
+    SAMPLE_TRIPS.forEach(([ago, km, minutes, l100, score], index) => {
       const day = new Date(today.getFullYear(), today.getMonth(), today.getDate() - ago);
-      this.addTrip({ day, distanceKm: km, durationS: minutes * 60, lPer100km: l100, score });
-    }
+      const route = sampleRoute(km, index + 1, day.getTime() + 17 * 3600 * 1000);
+      this.addTrip({ day, distanceKm: km, durationS: minutes * 60, lPer100km: l100, score, route });
+    });
   }
 
   // --- trips ---
@@ -139,6 +159,7 @@ class MemoryStore {
         durationS: trip.durationS,
         lPer100km: trip.lPer100km,
         score: trip.score,
+        ...(trip.route && trip.route.length ? { route: trip.route } : {}), // older trips have none
       })),
       runs: this._runs.map((run) => ({
         targetKmh: run.targetKmh,
@@ -163,7 +184,13 @@ class MemoryStore {
       if (!day || !finite(t.distanceKm) || !finite(t.durationS) || !okConsumption || !Number.isInteger(t.score)) {
         fail("a trip is damaged");
       }
-      return { day, distanceKm: t.distanceKm, durationS: t.durationS, lPer100km: t.lPer100km, score: t.score };
+      let route = [];
+      if (t.route !== undefined) {
+        const point = (p) => Array.isArray(p) && p.length === 3 && p.every(finite) && Math.abs(p[1]) <= 90 && Math.abs(p[2]) <= 180;
+        if (!Array.isArray(t.route) || t.route.length > ROUTE_MAX_POINTS || !t.route.every(point)) fail("a route is damaged");
+        route = t.route;
+      }
+      return { day, distanceKm: t.distanceKm, durationS: t.durationS, lPer100km: t.lPer100km, score: t.score, route };
     });
     const runs = data.runs.map((r) => {
       const finishedAt = new Date(r && r.finishedAt);
@@ -177,6 +204,7 @@ class MemoryStore {
       theme: s.theme === "day" ? "day" : "night",
       brightness: finite(s.brightness) ? Math.max(10, Math.min(100, Math.round(s.brightness))) : 100,
       motion: s.motion === true,
+      mapTiles: s.mapTiles !== false,
     };
     return { trips, runs, settings };
   }
@@ -254,12 +282,13 @@ class PersistentStore extends MemoryStore {
   async _load() {
     const read = (name) => requestResult(this._db.transaction(name).objectStore(name).getAll());
     const setting = (name) => requestResult(this._db.transaction("settings").objectStore("settings").get(name));
-    const [trips, runs, theme, brightness, motion, current] = await Promise.all([
+    const [trips, runs, theme, brightness, motion, mapTiles, current] = await Promise.all([
       read("trips"),
       read("runs"),
       setting("theme"),
       setting("brightness"),
       setting("motion"),
+      setting("mapTiles"),
       requestResult(this._db.transaction("current_trip").objectStore("current_trip").get(CURRENT_TRIP_KEY)),
     ]);
     this._trips = trips;
@@ -267,6 +296,7 @@ class PersistentStore extends MemoryStore {
     if (theme === "day" || theme === "night") this.settings.theme = theme;
     if (Number.isFinite(brightness)) this.settings.brightness = Math.max(10, Math.min(100, brightness));
     this.settings.motion = motion === true;
+    this.settings.mapTiles = mapTiles !== false; // on unless the user switched it off
     this._currentTrip = current === undefined ? null : current;
   }
 
@@ -311,6 +341,7 @@ class PersistentStore extends MemoryStore {
       settings.put(this.settings.theme, "theme");
       settings.put(this.settings.brightness, "brightness");
       settings.put(this.settings.motion, "motion");
+      settings.put(this.settings.mapTiles, "mapTiles");
     });
   }
 
@@ -333,6 +364,7 @@ class PersistentStore extends MemoryStore {
       settings.put(this.settings.theme, "theme");
       settings.put(this.settings.brightness, "brightness");
       settings.put(this.settings.motion, "motion");
+      settings.put(this.settings.mapTiles, "mapTiles");
     });
   }
 }
