@@ -20,7 +20,7 @@ button { font-family: inherit; }
   height: 100dvh;
   display: flex;
   flex-direction: column;
-  padding-top: env(safe-area-inset-top);
+  padding-top: calc(env(safe-area-inset-top) + var(--top-offset));
 }
 
 /* Black layer over the app; the Brightness setting changes its opacity. */

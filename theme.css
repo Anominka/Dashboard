@@ -7,6 +7,7 @@
 :root {
   --font: "Barlow Semi Condensed", "Arial Narrow", Arial, sans-serif;
 
+  --top-offset: 16px;   /* extra space above the top bar, on top of the notch / status bar area */
   --top-bar-height: 44px;
   --nav-bar-height: 64px;
   --nav-button-height: 48px;
