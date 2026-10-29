@@ -13,10 +13,14 @@ html, body {
   user-select: none;
 }
 
+/* Anything the phone shows below the window (the strip some iPhones leave under a Home Screen app)
+   has the bottom bar's color, so the bar seems to reach the edge of the screen. */
+html { background: var(--nav-background); }
+
 button { font-family: inherit; }
 
-/* Pinned to the whole screen. Not "height: 100dvh": in a Home Screen app on iPhone that comes out
-   shorter than the screen (by the status bar height), which left a gap under the bottom buttons. */
+/* Fills the window. The bottom margin for the home indicator is `--bottom-inset`: the phone's own
+   safe-area value, unless screen_fit.js finds that the window already ends above the home indicator. */
 #app {
   position: fixed;
   inset: 0;
@@ -241,9 +245,9 @@ button { font-family: inherit; }
 /* --- Bottom navigation --- */
 
 .nav {
-  height: calc(var(--nav-bar-height) + env(safe-area-inset-bottom));
+  height: calc(var(--nav-bar-height) + var(--bottom-inset, env(safe-area-inset-bottom)));
   flex: none;
-  padding: 8px var(--page-padding-x) calc(8px + env(safe-area-inset-bottom));
+  padding: 8px var(--page-padding-x) calc(8px + var(--bottom-inset, env(safe-area-inset-bottom)));
   display: flex;
   gap: var(--nav-gap);
   background: var(--nav-background);
